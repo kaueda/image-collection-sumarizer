@@ -68,7 +68,11 @@ void opf_OPFTraining(Subgraph *sg){
         for (q=0; q < sg->nnodes; q++) {
             if (p!=q) {
                 if (pathval[p] < pathval[q]) {
+<<<<<<< HEAD
                     if (!opf_PrecomputedDistance)
+=======
+                    if(!opf_PrecomputedDistance)
+>>>>>>> 481d42f8c33780fe930ed7d3b440df6efb2547a1
                         weight = opf_ArcWeight(sg->node[p].feat,sg->node[q].feat,sg->nfeats);
                     else
                         weight = opf_DistanceValue[sg->node[p].position][sg->node[q].position];
@@ -109,7 +113,11 @@ void opf_OPFClassifying(Subgraph *sgtrain, Subgraph *sg) {
         label   = sgtrain->node[k].label;
 
         while((j < sgtrain->nnodes-1) 
+<<<<<<< HEAD
               && (minCost > sgtrain->node[sgtrain->ordered_list_of_nodes[j+1]].pathval)) {
+=======
+            && (minCost > sgtrain->node[sgtrain->ordered_list_of_nodes[j+1]].pathval)) {
+>>>>>>> 481d42f8c33780fe930ed7d3b440df6efb2547a1
 
             l  = sgtrain->ordered_list_of_nodes[j+1];
 

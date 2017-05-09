@@ -16,7 +16,7 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-	int n,i;
+	int n, i, debug = 1;
 	float time;
 	char fileName[256];
 	FILE *f = NULL;
@@ -39,12 +39,23 @@ int main(int argc, char **argv){
 	fprintf(stdout, "\nWriting output file ..."); fflush(stdout);
 	sprintf(fileName,"%s.out",argv[1]);
 	f = fopen(fileName,"w");
-	for (i = 0; i < gTest->nnodes; i++){
-		//fprintf(f,"%d %d\n",gTest->node[i].label,gTest->node[i].truelabel);
+	for (i = 0; i < gTest->nnodes; i++)
 		fprintf(f,"%d\n",gTest->node[i].label);
-	}
 	fclose(f);
 	fprintf(stdout, " OK"); fflush(stdout);
+
+	if (debug) {
+		fprintf(stdout, "\nWriting debug file ..."); fflush(stdout);
+		sprintf(fileName,"%s.bug",argv[1]);
+		f = fopen(fileName,"w");
+		for (i = 0; i < gTest->nnodes; i++) {
+			fprintf(f, "%d\n", gTest->node[i].label);
+			fprintf(f, "%d\n", gTest->node[i].position);
+			fprintf(f, "----------\n");
+		}
+		fclose(f);
+		fprintf(stdout, " OK"); fflush(stdout);
+	}
 
 	fprintf(stdout, "\nDeallocating memory ...");
 	DestroySubgraph(&gTrain);

@@ -1,7 +1,5 @@
 *.dat
-*.acc
-*.out
-*.time
+*.dat.*
 classifier.opf
 */[Bb]in/
 */[Tt]ools/

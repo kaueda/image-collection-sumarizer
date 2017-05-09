@@ -11,7 +11,7 @@ FLAGS=  -O3 -Wall
 
 INCFLAGS = -I$(INCLUDE) -I$(INCLUDE)/$(UTIL)
 
-all: libOPF opf_split opf_accuracy opf_train opf_classify opf_classifyscore opf_learn opf_distance opf_info opf_fold opf_merge opf_cluster opf_knn_classify bayes statistics txt2opf opf_repeat
+all: libOPF opf_split opf_accuracy opf_train opf_train_prototypes opf_classify opf_classifyscore opf_learn opf_distance opf_info opf_fold opf_merge opf_cluster opf_knn_classify bayes statistics txt2opf opf_repeat
 
 libOPF: libOPF-build
 	echo "libOPF.a built..."
@@ -41,6 +41,9 @@ opf_accuracy: libOPF
 
 opf_train: libOPF
 	$(CC) $(FLAGS) $(INCFLAGS) src/opf_train.c  -L./lib -o bin/opf_train -lOPF -lm
+
+opf_train_prototypes: libOPF
+	$(CC) $(FLAGS) $(INCFLAGS) src/opf_train_prototypes.c  -L./lib -o bin/opf_train_prototypes -lOPF -lm
 
 opf_classify: libOPF
 	$(CC) $(FLAGS) $(INCFLAGS) src/opf_classify.c  -L./lib -o bin/opf_classify -lOPF -lm
