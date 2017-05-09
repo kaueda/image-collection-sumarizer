@@ -1,3 +1,11 @@
+*.dat
+*.acc
+*.out
+*.time
+classifier.opf
+*/[Bb]in/
+*/[Tt]ools/
+
 # Object files
 *.o
 *.ko

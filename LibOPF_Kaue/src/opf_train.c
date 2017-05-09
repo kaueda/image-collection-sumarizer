@@ -1,5 +1,45 @@
 #include "OPF.h"
 
+void getPrototypes(Subgraph *g) {
+	FILE *fp = NULL;
+	int   i, j;
+	size_t result;
+
+	fp = fopen("prototypes.txt", "w");
+	result = fwrite(&g->nnodes, sizeof(int), 1, fp);
+	result = fwrite(&g->nlabels, sizeof(int), 1, fp);
+	result = fwrite(&g->nfeats, sizeof(int), 1, fp);
+
+	/*writing df*/
+	result = fwrite(&g->df, sizeof(float), 1, fp);
+
+	// for supervised opf based on pdf
+
+	result = fwrite(&g->K, sizeof(float), 1, fp);
+	result = fwrite(&g->mindens, sizeof(float), 1, fp);
+	result = fwrite(&g->maxdens, sizeof(float), 1, fp);
+
+	/*writing position(id), label, pred, pathval and features*/
+	for (i = 0; i < g->nnodes; i++){
+		if (g->node[i].status == opf_PROTOTYPE) {
+			result = fwrite(&g->node[i].position, sizeof(int), 1, fp);
+			result = fwrite(&g->node[i].truelabel, sizeof(int), 1, fp);
+			result = fwrite(&g->node[i].pred, sizeof(int), 1, fp);
+			result = fwrite(&g->node[i].label, sizeof(int), 1, fp);
+			result = fwrite(&g->node[i].pathval, sizeof(float), 1, fp);
+			result = fwrite(&g->node[i].radius, sizeof(float), 1, fp);
+
+			for (j = 0; j < g->nfeats; j++)
+				result = fwrite(&g->node[i].feat[j], sizeof(float), 1, fp);
+		}
+	}
+
+	for (i = 0; i < g->nnodes; i++)
+		result = fwrite(&g->ordered_list_of_nodes[i], sizeof(int), 1, fp);
+
+	fclose(fp);
+}
+
 int main(int argc, char **argv){
 	fflush(stdout);
 	fprintf(stdout, "\nProgram that executes the training phase of the OPF classifier\n");
@@ -38,6 +78,10 @@ int main(int argc, char **argv){
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);
 	opf_WriteModelFile(g, "classifier.opf");
+	fprintf(stdout, " OK"); fflush(stdout);
+
+	fprintf(stdout, "\nWriting prototype's model file ..."); fflush(stdout);
+	getPrototypes(g);
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting output file ..."); fflush(stdout);
