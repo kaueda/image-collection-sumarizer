@@ -38,6 +38,22 @@ elif [ $2 -eq 2 ]; then
     ./LibOPF_Kaue/bin/opf_train_prototypes training.dat
     ./LibOPF_Kaue/bin/opf_classify testing.dat
     ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+elif [ $2 -eq 3 ]; then
+    ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
+
+    # Test protos model
+    ./LibOPF_Kaue/bin/opf_train_prototypes training.dat
+    ./LibOPF_Kaue/bin/opf_classify testing.dat
+    ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+elif [ $2 -eq 4 ]; then
+    ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
+
+    # Test protos model
+    ./LibOPF_Kaue/bin/opf_train training.dat
+    ./LibOPF_Kaue/bin/opf_classify testing.dat
+    ./LibOPF_Kaue/bin/opf_accuracy testing.dat
 fi
 
 # rm *.dat.* classifier.opf

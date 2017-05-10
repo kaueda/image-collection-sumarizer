@@ -1,4 +1,5 @@
 *.dat
+*.acc
 *.dat.*
 classifier.opf
 */[Bb]in/

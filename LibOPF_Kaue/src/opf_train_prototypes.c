@@ -31,6 +31,8 @@ Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos) {
 			protos->node[j].truelabel = sgTrain->node[i].truelabel;
 			// copia a posicao
             protos->node[j].position = sgTrain->node[i].position;
+			// seta o indice de cada no na lista
+            protos->ordered_list_of_nodes[j] = j;
 
         	j++;
     	}
@@ -55,7 +57,7 @@ int main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	int n, i, nprotos, debug = 1;
+	int n, i, j, nprotos, debug = 1;
 	char fileName[256];
 	FILE *f = NULL;
 	timer tic, toc;
@@ -99,6 +101,7 @@ int main(int argc, char **argv) {
 		for (i = 0; i < gPrototypes->nnodes; i++) {
 			fprintf(f, "%d\n",gPrototypes->node[i].label);
 			fprintf(f, "%d\n",gPrototypes->node[i].position);
+			fprintf(f, "%d\n", gPrototypes->ordered_list_of_nodes[i]);
 			fprintf(f, "----------\n");
 		}
 		fclose(f);

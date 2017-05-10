@@ -51,6 +51,7 @@ int main(int argc, char **argv){
 		for (i = 0; i < gTest->nnodes; i++) {
 			fprintf(f, "%d\n", gTest->node[i].label);
 			fprintf(f, "%d\n", gTest->node[i].position);
+			fprintf(f, "%d\n", gTest->ordered_list_of_nodes[i]);
 			fprintf(f, "----------\n");
 		}
 		fclose(f);
