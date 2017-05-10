@@ -1,11 +1,5 @@
 *.dat
-<<<<<<< HEAD
 *.dat.*
-=======
-*.acc
-*.out
-*.time
->>>>>>> 481d42f8c33780fe930ed7d3b440df6efb2547a1
 classifier.opf
 */[Bb]in/
 */[Tt]ools/
