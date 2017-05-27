@@ -1,44 +1,12 @@
 #include "OPF.h"
 
 // Código original disponibilizado por Prof. Moacir Ponti
-Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int nk) {
-	Subgraph *protos = NULL;
-    int i, j, n;
-    *nk = 0;
+Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
+	Subgraph *sgkmeans = NULL;
 
-    for(i = 0; i < sgTrain->nnodes; i++) {
-        //Conta quantos prototipos existem
-        if(sgTrain->node[i].status == 1) (*nk)++;
-    }
 
-    protos = CreateSubgraph((*nk));// cria uma subgraph
-    protos->nlabels = sgTrain->nlabels;// copia o numero de rotulos
-    protos->nnodes = (*nk);
 
-    protos->nfeats = sgTrain->nfeats;// copia o numero dos atributos
-    for (i = 0; i < (*nk); i++)//aloca a quantidade de atributos
-        protos->node[i].feat = AllocFloatArray(sgTrain->nfeats);
-   
-	j = 0;
-	for(i = 0; i < sgTrain->nnodes; i++) {
-        if(sgTrain->node[i].status == 1) {// se for prototipo insere no novo conjunto
-			// copia os atributos
-			for (n = 0; n < sgTrain->nfeats; n++)
-                protos->node[j].feat[n] = sgTrain->node[i].feat[n];
-            
-			// copia o rotulo e rotulo verdadeiro(supervisionado)
-			protos->node[j].label = sgTrain->node[i].label;
-			protos->node[j].truelabel = sgTrain->node[i].truelabel;
-			// copia a posicao
-            protos->node[j].position = sgTrain->node[i].position;
-			// seta o indice de cada no na lista
-            protos->ordered_list_of_nodes[j] = j;
-
-        	j++;
-    	}
-    }
-
-    return protos;
+    return sgkmeans;
 }
 
 int main(int argc, char **argv) {
@@ -57,7 +25,7 @@ int main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	int n, i, j, nk, debug = 1;
+	int n, i, j, k, debug = 1;
 	char fileName[256];
 	FILE *f = NULL;
 	timer tic, toc;
@@ -80,9 +48,9 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "\nGetting K-Mean Nodes ..."); fflush(stdout);
 	sprintf(fileName, "%s.nprotos", argv[1]);
 	f = fopen(fileName, "r");
-	fscanf(f, "%d\n", &nk);
+	fscanf(f, "%d\n", &k);
 	fclose(f);
-	Subgraph *gKMeans = opf_OPFTrainKMeans(gTrain, nk);
+	Subgraph *gKMeans = opf_OPFTrainKMeans(gTrain, k);
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);

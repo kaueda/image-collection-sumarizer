@@ -1,29 +1,50 @@
 #include "OPF.h"
 
+typedef struct {
+	float pathval;
+	int id;
+} sortsg;
+
+int compare(const void *a, const void *b) {
+	sortsg *x = (sortsg*) a;
+	sortsg *y = (sortsg*) b;
+	return (x->pathval > y->pathval);
+}
+
 // Código original disponibilizado por Prof. Moacir Ponti
-Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
+Subgraph* opf_OPFTrainPrototypesPlus(Subgraph *sgTrain, int *nprotos, float rate) {
 	Subgraph *protos = NULL;
-	int i, j, k, n;
+	sortsg *ordered_index = NULL;
+    int i, j, k, n;
     *nprotos = 0;
 
     //Conta quantos prototipos existem
     for(i = 0; i < sgTrain->nnodes; i++) 
         if(sgTrain->node[i].status == 1) (*nprotos)++;
 
-	if((*nprotos) > sgTrain->nnodes*rate)
+    if((*nprotos) > sgTrain->nnodes*rate)
 		(*nprotos) = sgTrain->nnodes*rate;
 
-	fprintf(stdout, "%d/%d", (*nprotos), sgTrain->nnodes);
+    if((*nprotos) >= sgTrain->nnodes/2) {
+        (*nprotos) = sgTrain->nnodes;
+        return sgTrain;
+    }
 
-    protos = CreateSubgraph((*nprotos));// cria uma subgraph
+	fprintf(stdout, "%d/%d", (*nprotos)*2, sgTrain->nnodes);
+
+    ordered_index = (sortsg*) calloc((*nprotos)*2, sizeof(sortsg));
+    if(ordered_index == NULL)
+        Error(MSG1, "Allocation of memory for struct");
+
+    protos = CreateSubgraph((*nprotos)*2);// cria uma subgraph
     protos->nlabels = sgTrain->nlabels;// copia o numero de rotulos
-    protos->nnodes = (*nprotos);
+    protos->nnodes = (*nprotos)*2;
 
     protos->nfeats = sgTrain->nfeats;// copia o numero dos atributos
-    for (i = 0; i < (*nprotos); i++)// aloca a quantidade de atributos
+    for (i = 0; i < (*nprotos)*2; i++)// aloca a quantidade de atributos
         protos->node[i].feat = AllocFloatArray(sgTrain->nfeats);
-   
-	k = 0;
+
+    k = 0;
 	for(i = 0; i < (*nprotos); i++) {
         j = sgTrain->ordered_list_of_nodes[i];
         
@@ -36,17 +57,45 @@ Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
         // copia a posicao
         protos->node[k].position = sgTrain->node[j].position;
 
-        protos->ordered_list_of_nodes[i] = i;
+        ordered_index[k].id = k;
+		ordered_index[k].pathval = sgTrain->node[j].pathval;
 
         k++;
     }
+    for(i = sgTrain->nnodes - (*nprotos); i < (*nprotos); i++) {
+        j = sgTrain->ordered_list_of_nodes[i];
+
+        for (n = 0; n < sgTrain->nfeats; n++)
+            protos->node[k].feat[n] = sgTrain->node[j].feat[n];
+        
+        // copia o rotulo e rotulo verdadeiro(supervisionado)
+        protos->node[k].label = sgTrain->node[j].label;
+        protos->node[k].truelabel = sgTrain->node[j].truelabel;
+        // copia a posicao
+        protos->node[k].position = sgTrain->node[j].position;
+
+        ordered_index[k].id = k;
+		ordered_index[k].pathval = sgTrain->node[j].pathval;
+
+        k++;
+    }
+
+    (*nprotos) *= 2;
+
+	// sort and set the ordered list of nodes
+	qsort(ordered_index, (*nprotos), sizeof(sortsg), compare);
+	for (i = 0; i < (*nprotos); i++)
+		protos->ordered_list_of_nodes[i] = ordered_index[i].id;
+
+
+    free(ordered_index);
 
     return protos;
 }
 
 int main(int argc, char **argv) {
 	fflush(stdout);
-	fprintf(stdout, "\nProgram that executes the training phase of the Prototypes classifier\n");
+	fprintf(stdout, "\nProgram that executes the training phase of the Prototypes Plus classifier\n");
 	fprintf(stdout, "\nIf you have any problem, please contact: ");
 	fprintf(stdout, "\n- alexandre.falcao@gmail.com");
 	fprintf(stdout, "\n- papa.joaopaulo@gmail.com\n");
@@ -83,7 +132,7 @@ int main(int argc, char **argv) {
 
 	fprintf(stdout, "\nGetting Prototypes ..."); fflush(stdout);
 	nprotos = 0;
-	Subgraph *gPrototypes = opf_OPFTrainPrototypes(gTrain, &nprotos, atof(argv[2]));
+	Subgraph *gPrototypes = opf_OPFTrainPrototypesPlus(gTrain, &nprotos, atof(argv[2]));
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);

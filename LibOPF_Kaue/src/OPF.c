@@ -146,7 +146,7 @@ void opf_OPFClassifyingMarkingRelevants(Subgraph *sgtrain, Subgraph *sg){
         if(!opf_PrecomputedDistance)
             weight = opf_ArcWeight(sgtrain->node[k].feat,sg->node[i].feat,sg->nfeats);
         else
-        weight = opf_DistanceValue[sgtrain->node[k].position][sg->node[i].position];
+            weight = opf_DistanceValue[sgtrain->node[k].position][sg->node[i].position];
 
         minCost = MAX(sgtrain->node[k].pathval, weight);
         label   = sgtrain->node[k].label;

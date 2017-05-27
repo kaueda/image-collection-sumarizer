@@ -1,56 +1,89 @@
 #include "OPF.h"
 
+typedef struct {
+	float pathval;
+	int id;
+} sortsg;
+
+int compare(const void *a, const void *b) {
+	sortsg *x = (sortsg*) a;
+	sortsg *y = (sortsg*) b;
+	return (x->pathval > y->pathval);
+}
+
+int* shuffle(int n) {
+	int *array = NULL;
+	int i, randi, aux;
+
+	array = AllocIntArray(n);
+
+	for (i = 0; i < n; i++) array[i] = i;
+	for (i = 0; i < n; i++) {
+		randi = rand() % n;
+		
+		aux = array[i];
+		array[i] = array[randi];
+		array[randi] = aux;
+	}
+
+	return array;
+}
+
 // Código original disponibilizado por Prof. Moacir Ponti
 Subgraph* opf_OPFTrainRandom(Subgraph *sgTrain, int nrand) {
-	Subgraph *protos = NULL;
+	Subgraph *sgrand = NULL;
+	int *randseq = NULL;
+	sortsg ordered_index[nrand];
     int i, j, n;
-    *nrand = 0;
 
-    for(i = 0; i < sgTrain->nnodes; i++) {
-        //Conta quantos prototipos existem
-        if(sgTrain->node[i].status == 1) (*nrand)++;
-    }
+    sgrand = CreateSubgraph(nrand);// cria uma subgraph
+    sgrand->nlabels = sgTrain->nlabels;// copia o numero de rotulos
+    sgrand->nnodes = nrand;
 
-    protos = CreateSubgraph((*nrand));// cria uma subgraph
-    protos->nlabels = sgTrain->nlabels;// copia o numero de rotulos
-    protos->nnodes = (*nrand);
-
-    protos->nfeats = sgTrain->nfeats;// copia o numero dos atributos
-    for (i = 0; i < (*nrand); i++)//aloca a quantidade de atributos
-        protos->node[i].feat = AllocFloatArray(sgTrain->nfeats);
+    sgrand->nfeats = sgTrain->nfeats;// copia o numero dos atributos
+    for (i = 0; i < nrand; i++)//aloca a quantidade de atributos
+        sgrand->node[i].feat = AllocFloatArray(sgTrain->nfeats);
    
-	j = 0;
-	for(i = 0; i < sgTrain->nnodes; i++) {
-        if(sgTrain->node[i].status == 1) {// se for prototipo insere no novo conjunto
-			// copia os atributos
-			for (n = 0; n < sgTrain->nfeats; n++)
-                protos->node[j].feat[n] = sgTrain->node[i].feat[n];
-            
-			// copia o rotulo e rotulo verdadeiro(supervisionado)
-			protos->node[j].label = sgTrain->node[i].label;
-			protos->node[j].truelabel = sgTrain->node[i].truelabel;
-			// copia a posicao
-            protos->node[j].position = sgTrain->node[i].position;
-			// seta o indice de cada no na lista
-            protos->ordered_list_of_nodes[j] = j;
+	srand(time(NULL));
+	randseq = shuffle(sgTrain->nnodes);
 
-        	j++;
-    	}
-    }
+	fprintf(stdout, "%d", nrand);
+	for (i = 0; i < nrand; i++) {
+		j = randseq[i];
 
-    return protos;
+		for (n = 0; n < sgTrain->nfeats; n++)
+            sgrand->node[i].feat[n] = sgTrain->node[j].feat[n];
+
+		// copia o rotulo e rotulo verdadeiro(supervisionado)
+		sgrand->node[i].label = sgTrain->node[j].label;
+		sgrand->node[i].truelabel = sgTrain->node[j].truelabel;
+		// copia a posicao
+		sgrand->node[i].position = sgTrain->node[j].position;
+		
+		ordered_index[i].id = i;
+		ordered_index[i].pathval = sgTrain->node[j].pathval;
+	}
+
+	// sort and set the ordered list of nodes
+	qsort(ordered_index, nrand, sizeof(sortsg), compare);
+	for (i = 0; i < nrand; i++)
+		sgrand->ordered_list_of_nodes[i] = ordered_index[i].id;
+
+	free(randseq);
+
+    return sgrand;
 }
 
 int main(int argc, char **argv) {
 	fflush(stdout);
-	fprintf(stdout, "\nProgram that executes the training phase of the OPF classifier\n");
+	fprintf(stdout, "\nProgram that executes the training phase of the Random classifier\n");
 	fprintf(stdout, "\nIf you have any problem, please contact: ");
 	fprintf(stdout, "\n- alexandre.falcao@gmail.com");
 	fprintf(stdout, "\n- papa.joaopaulo@gmail.com\n");
 	fprintf(stdout, "\nLibOPF version 2.0 (2009)\n");
 	fprintf(stdout, "\n"); fflush(stdout);
 
-	if((argc != 3) && (argc != 2)){
+	if((argc != 3) && (argc != 2)) {
 		fprintf(stderr, "\nusage opf_train <P1> <P2>");
 		fprintf(stderr, "\nP1: training set in the OPF file format");
 		fprintf(stderr, "\nP2: precomputed distance file (leave it in blank if you are not using this resource)\n");
@@ -80,7 +113,7 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "\nGetting N-Random Nodes ..."); fflush(stdout);
 	sprintf(fileName, "%s.nprotos", argv[1]);
 	f = fopen(fileName, "r");
-	fscanf(f, "%d\n", nrand);
+	fscanf(f, "%d\n", &nrand);
 	fclose(f);
 	Subgraph *gRandom = opf_OPFTrainRandom(gTrain, nrand);
 	fprintf(stdout, " OK"); fflush(stdout);
