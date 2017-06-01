@@ -1,10 +1,178 @@
 #include "OPF.h"
 
+#define MAXITERS 1000
+#define FALSE 0
+#define TRUE !(FALSE)
+
+typedef struct {
+	float pathval;
+	int id;
+} sortsg;
+
+int compare(const void *a, const void *b) {
+	sortsg *x = (sortsg*) a;
+	sortsg *y = (sortsg*) b;
+	return (x->pathval > y->pathval);
+}
+
+void getLabels(Subgraph *data, int *labels, int *centroids, int k) {
+	int i, j, minid;
+	float weight, minw;
+
+	for(i = 0; i < data->nnodes; i++) {
+		minid = -1;
+		minw = INT_MAX;
+
+		for(j = 0; j < k; j++) {
+			// Get weight 
+			weight = opf_ArcWeight(data->node[centroids[j]].feat, data->node[i].feat, data->nfeats);
+
+			// Verify if minimum and update
+			if(minw > weight) {
+				minid = centroids[j];
+				minw = weight;
+			}
+		}
+
+		// Set the label of node[i] as centroid index
+		labels[i] = minid;
+	}
+}
+
+int* getCentroids(Subgraph *data, int *labels, int *centroids, int k) {
+	int i, j, f, minid;
+	float weight, minw;
+	SNode *mean;
+	int *count;
+
+	// Initialize means verctor for each centroid
+	count = AllocIntArray(k);
+	mean = (SNode*) calloc(k, sizeof(SNode));
+	for(i = 0; i < k; i++) {
+		count[i] = 0;
+		mean[i].feat = AllocFloatArray(data->nfeats);
+		for(j = 0; j < data->nfeats; j++) mean[i].feat[j] = 0.0;
+	}
+
+	// Calculate the means for each centroid
+	for(i = 0; i < k; i++) { // for each centroid
+		for(j = 0; j < data->nnodes; j++) { // and each node
+			if(labels[j] == centroids[i]) { // verify which if is cluster 'i'
+				for(f = 0; f < data->nfeats; f++) { // calculate mean
+					mean[i].feat[f] += data->node[j].feat[f];
+					count[i]++;
+				}
+			}
+		}
+	}
+
+	// Assign new centroids
+	for(i = 0; i < k; i++) {
+		for(f = 0; f < data->nfeats; f++)
+			mean[i].feat[f] /= count[i];
+
+		minid = -1;
+		minw = INT_MAX;
+		for(j = 0; j < data->nnodes; j++) {
+			if(labels[j] == centroids[i]) {
+				// Get weight compared to mean
+				weight = opf_ArcWeight(mean[i].feat, data->node[j].feat, data->nfeats);
+
+				// Verify if minimum and update
+				if(minw > weight) {
+					minid = j;
+					minw = weight;
+				}
+			}
+		}
+		centroids[i] =  minid;
+	}
+
+	free(count);
+	for(i = 0; i < k; i++) free(mean[i].feat);
+	free(mean);
+}
+
+int shouldStop(int *old, int *cur, int k, int iters) {
+	int i;
+	// If reached max iterations should stop
+	if(iters >= MAXITERS) return TRUE;
+
+	for(i = 0; i < k; i++)
+		if(old[i] != cur[i]) return FALSE; // If there is some change shouldn't stop
+	return TRUE;
+}
+
+void cpyarr(int *a, int *b, int n) {
+	int i;
+	for(i = 0; i < n; i++) {
+		a[i] = b[i];
+	}
+}
+
 // Código original disponibilizado por Prof. Moacir Ponti
 Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 	Subgraph *sgkmeans = NULL;
+	sortsg *ordered_index = NULL;
+	int *centroids, *oldCentroids, *labels;
+	int i, j, iters = 0;
 
+	centroids = AllocIntArray(k);
+	oldCentroids = AllocIntArray(k);
+	labels = AllocIntArray(sgTrain->nnodes);
 
+	ordered_index = (sortsg*) calloc(k, sizeof(sortsg));
+    if(ordered_index == NULL)
+        Error(MSG1, "Allocation of memory for struct");
+
+	fprintf(stdout, "\nGot through\n"); fflush(stdout);
+
+	sgkmeans = CreateSubgraph(k);
+	for (i = 0; i < k; i++)// aloca a quantidade de atributos
+        sgkmeans->node[i].feat = AllocFloatArray(sgTrain->nfeats);
+
+	// initialize centroids as k-first nodes with smallest pathval
+	for(i = 0; i < k; i++) centroids[i] = sgTrain->ordered_list_of_nodes[i+1];
+
+	while(!shouldStop(oldCentroids, centroids, k, iters)){
+		cpyarr(oldCentroids, centroids, k);
+		iters++;
+
+		// Set the labels according to closest centroids
+		getLabels(sgTrain, labels, centroids, k);
+
+		// For each cluster calculate new centroids 
+		getCentroids(sgTrain, labels, centroids, k);
+	}
+
+	fprintf(stdout, "\nGot through\n"); fflush(stdout);
+
+	for(i = 0; i < k; i++) {
+        j = centroids[i];
+        
+        // copia o rotulo e rotulo verdadeiro(supervisionado)
+        sgkmeans->node[i].label = sgTrain->node[j].label;
+        sgkmeans->node[i].truelabel = sgTrain->node[j].truelabel;
+        // copia a posicao
+        sgkmeans->node[i].position = sgTrain->node[j].position;
+
+		ordered_index[i].id = i;
+		ordered_index[i].pathval = sgTrain->node[j].pathval;
+    }
+
+	fprintf(stdout, "\nGot through\n"); fflush(stdout);
+
+	// sort and set the ordered list of nodes
+	qsort(ordered_index, k, sizeof(sortsg), compare);
+	for (i = 0; i < k; i++)
+		sgkmeans->ordered_list_of_nodes[i] = ordered_index[i].id;
+
+	fprintf(stdout, "\nGot through\n"); fflush(stdout);
+
+	free(labels);
+	free(centroids);
+	free(oldCentroids);
+	free(ordered_index);
 
     return sgkmeans;
 }

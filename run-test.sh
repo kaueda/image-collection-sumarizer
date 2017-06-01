@@ -1,7 +1,8 @@
 #!/bin/bash
+
 base=$1
 rate=$2
-rm *.dat.* classifier.opf
+# rm *.dat.* classifier.opf
 
 training=.5
 testing=$(bc -l <<< "1 - $training")
@@ -35,7 +36,12 @@ if [ $3 -eq 1 ]; then
         ./LibOPF_Kaue/bin/opf_classify testing.dat
         ./LibOPF_Kaue/bin/opf_accuracy testing.dat
 
-        echo "------------------------------------------------------------------------"
+        # Test kmeans model
+        ./LibOPF_Kaue/bin/opf_train_kmeans training.dat
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+        echo "--------------------------------------------------------------------------------"
         echo "---------" >> testing.dat.acc
     done
     mv testing.dat.acc $base.acc
@@ -83,6 +89,15 @@ elif [ $3 -eq 6 ]; then
 
     # Test prototypes plus model
     ./LibOPF_Kaue/bin/opf_train_prototypesplus training.dat $rate
+    ./LibOPF_Kaue/bin/opf_classify testing.dat
+    ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+elif [ $3 -eq 7 ]; then
+    ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
+
+    # Test prototypes plus model
+    ./LibOPF_Kaue/bin/opf_train_prototypes training.dat $rate
+    ./LibOPF_Kaue/bin/opf_train_kmeans training.dat
     ./LibOPF_Kaue/bin/opf_classify testing.dat
     ./LibOPF_Kaue/bin/opf_accuracy testing.dat
 fi

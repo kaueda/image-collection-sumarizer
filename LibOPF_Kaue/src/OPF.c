@@ -430,8 +430,8 @@ void opf_RemoveIrrelevantNodes(Subgraph **sg){
   if (num_of_irrelevants>0){
     newsg = CreateSubgraph((*sg)->nnodes - num_of_irrelevants);
     newsg->nfeats = (*sg)->nfeats;
-//    for (i=0; i < newsg->nnodes; i++)
-//      newsg->node[i].feat = AllocFloatArray(newsg->nfeats);
+  // for (i=0; i < newsg->nnodes; i++)
+  //    newsg->node[i].feat = AllocFloatArray(newsg->nfeats);
 
     k=0;
     newsg->nlabels = (*sg)->nlabels;
@@ -464,11 +464,11 @@ void opf_MoveIrrelevantNodes(Subgraph **src, Subgraph **dst){
     newsrc->nfeats = (*src)->nfeats; newdst->nfeats = (*dst)->nfeats;
     newsrc->nlabels = (*src)->nlabels; newdst->nlabels = (*dst)->nlabels;
 
-//    for (i=0; i < newsrc->nnodes; i++)
-//      newsrc->node[i].feat = AllocFloatArray(newsrc->nfeats);
+ //    for (i=0; i < newsrc->nnodes; i++)
+ //      newsrc->node[i].feat = AllocFloatArray(newsrc->nfeats);
 
-//    for (i=0; i < newdst->nnodes; i++)
-//      newdst->node[i].feat = AllocFloatArray(newdst->nfeats);
+ //    for (i=0; i < newdst->nnodes; i++)
+ //      newdst->node[i].feat = AllocFloatArray(newdst->nfeats);
 
     for (i = 0; i < (*dst)->nnodes; i++)
       CopySNode(&(newdst->node[i]), &((*dst)->node[i]), newdst->nfeats);
