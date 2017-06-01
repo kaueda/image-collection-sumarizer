@@ -115,7 +115,7 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 	Subgraph *sgkmeans = NULL;
 	sortsg *ordered_index = NULL;
 	int *centroids, *oldCentroids, *labels;
-	int i, j, iters = 0;
+	int i, j, n, iters = 0;
 
 	centroids = AllocIntArray(k);
 	oldCentroids = AllocIntArray(k);
@@ -125,15 +125,16 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
     if(ordered_index == NULL)
         Error(MSG1, "Allocation of memory for struct");
 
-	fprintf(stdout, "\nGot through\n"); fflush(stdout);
-
 	sgkmeans = CreateSubgraph(k);
 	for (i = 0; i < k; i++)// aloca a quantidade de atributos
         sgkmeans->node[i].feat = AllocFloatArray(sgTrain->nfeats);
-
+	
 	// initialize centroids as k-first nodes with smallest pathval
-	for(i = 0; i < k; i++) centroids[i] = sgTrain->ordered_list_of_nodes[i+1];
+	for(i = 0; i < k; i++) centroids[i] = sgTrain->ordered_list_of_nodes[i];
 
+	fprintf(stdout, " %d", k);
+
+	fprintf(stdout, "\n", k);
 	while(!shouldStop(oldCentroids, centroids, k, iters)){
 		cpyarr(oldCentroids, centroids, k);
 		iters++;
@@ -143,31 +144,23 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 
 		// For each cluster calculate new centroids 
 		getCentroids(sgTrain, labels, centroids, k);
+		fprintf(stdout, "%d   ", iters); fflush(stdout);
 	}
 
-	fprintf(stdout, "\nGot through\n"); fflush(stdout);
-
+	// Set centroids as new subgraph
 	for(i = 0; i < k; i++) {
         j = centroids[i];
-        
-        // copia o rotulo e rotulo verdadeiro(supervisionado)
-        sgkmeans->node[i].label = sgTrain->node[j].label;
-        sgkmeans->node[i].truelabel = sgTrain->node[j].truelabel;
-        // copia a posicao
-        sgkmeans->node[i].position = sgTrain->node[j].position;
+
+		CopySNode(&(sgkmeans->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
 
 		ordered_index[i].id = i;
 		ordered_index[i].pathval = sgTrain->node[j].pathval;
     }
-
-	fprintf(stdout, "\nGot through\n"); fflush(stdout);
-
+	
 	// sort and set the ordered list of nodes
 	qsort(ordered_index, k, sizeof(sortsg), compare);
-	for (i = 0; i < k; i++)
+	for(i = 0; i < k; i++)
 		sgkmeans->ordered_list_of_nodes[i] = ordered_index[i].id;
-
-	fprintf(stdout, "\nGot through\n"); fflush(stdout);
 
 	free(labels);
 	free(centroids);
@@ -179,7 +172,7 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 
 int main(int argc, char **argv) {
 	fflush(stdout);
-	fprintf(stdout, "\nProgram that executes the training phase of the OPF classifier\n");
+	fprintf(stdout, "\nProgram that executes the training phase of the Kmeans classifier\n");
 	fprintf(stdout, "\nIf you have any problem, please contact: ");
 	fprintf(stdout, "\n- alexandre.falcao@gmail.com");
 	fprintf(stdout, "\n- papa.joaopaulo@gmail.com\n");
@@ -235,7 +228,7 @@ int main(int argc, char **argv) {
 
 	if (debug) {
 		fprintf(stdout, "\nWriting debug file ..."); fflush(stdout);
-		sprintf(fileName,"%s.bug",argv[1]);
+		sprintf(fileName, "%s.bug", argv[1]);
 		f = fopen(fileName,"w");
 		for (i = 0; i < gKMeans->nnodes; i++) {
 			fprintf(f, "%d\n",gKMeans->node[i].label);

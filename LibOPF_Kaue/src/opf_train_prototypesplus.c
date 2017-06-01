@@ -30,7 +30,7 @@ Subgraph* opf_OPFTrainPrototypesPlus(Subgraph *sgTrain, int *nprotos, float rate
         return sgTrain;
     }
 
-	fprintf(stdout, "%d/%d", (*nprotos)*2, sgTrain->nnodes);
+	fprintf(stdout, " %d/%d", (*nprotos)*2, sgTrain->nnodes);
 
     ordered_index = (sortsg*) calloc((*nprotos)*2, sizeof(sortsg));
     if(ordered_index == NULL)
@@ -47,15 +47,8 @@ Subgraph* opf_OPFTrainPrototypesPlus(Subgraph *sgTrain, int *nprotos, float rate
     k = 0;
 	for(i = 0; i < (*nprotos); i++) {
         j = sgTrain->ordered_list_of_nodes[i];
-        
-        for (n = 0; n < sgTrain->nfeats; n++)
-            protos->node[k].feat[n] = sgTrain->node[j].feat[n];
-        
-        // copia o rotulo e rotulo verdadeiro(supervisionado)
-        protos->node[k].label = sgTrain->node[j].label;
-        protos->node[k].truelabel = sgTrain->node[j].truelabel;
-        // copia a posicao
-        protos->node[k].position = sgTrain->node[j].position;
+
+		CopySNode(&(protos->node[k]), &(sgTrain->node[j]), sgTrain->nfeats);
 
         ordered_index[k].id = k;
 		ordered_index[k].pathval = sgTrain->node[j].pathval;
@@ -65,14 +58,7 @@ Subgraph* opf_OPFTrainPrototypesPlus(Subgraph *sgTrain, int *nprotos, float rate
     for(i = sgTrain->nnodes - (*nprotos); i < (*nprotos); i++) {
         j = sgTrain->ordered_list_of_nodes[i];
 
-        for (n = 0; n < sgTrain->nfeats; n++)
-            protos->node[k].feat[n] = sgTrain->node[j].feat[n];
-        
-        // copia o rotulo e rotulo verdadeiro(supervisionado)
-        protos->node[k].label = sgTrain->node[j].label;
-        protos->node[k].truelabel = sgTrain->node[j].truelabel;
-        // copia a posicao
-        protos->node[k].position = sgTrain->node[j].position;
+		CopySNode(&(protos->node[k]), &(sgTrain->node[j]), sgTrain->nfeats);
 
         ordered_index[k].id = k;
 		ordered_index[k].pathval = sgTrain->node[j].pathval;

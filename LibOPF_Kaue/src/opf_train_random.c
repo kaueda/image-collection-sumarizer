@@ -47,18 +47,20 @@ Subgraph* opf_OPFTrainRandom(Subgraph *sgTrain, int nrand) {
 	srand(time(NULL));
 	randseq = shuffle(sgTrain->nnodes);
 
-	fprintf(stdout, "%d", nrand);
+	fprintf(stdout, " %d", nrand);
 	for (i = 0; i < nrand; i++) {
 		j = randseq[i];
 
-		for (n = 0; n < sgTrain->nfeats; n++)
-            sgrand->node[i].feat[n] = sgTrain->node[j].feat[n];
+		CopySNode(&(sgrand->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
 
-		// copia o rotulo e rotulo verdadeiro(supervisionado)
-		sgrand->node[i].label = sgTrain->node[j].label;
-		sgrand->node[i].truelabel = sgTrain->node[j].truelabel;
-		// copia a posicao
-		sgrand->node[i].position = sgTrain->node[j].position;
+		// for (n = 0; n < sgTrain->nfeats; n++)
+        //     sgrand->node[i].feat[n] = sgTrain->node[j].feat[n];
+
+		// // copia o rotulo e rotulo verdadeiro(supervisionado)
+		// sgrand->node[i].label = sgTrain->node[j].label;
+		// sgrand->node[i].truelabel = sgTrain->node[j].truelabel;
+		// // copia a posicao
+		// sgrand->node[i].position = sgTrain->node[j].position;
 		
 		ordered_index[i].id = i;
 		ordered_index[i].pathval = sgTrain->node[j].pathval;

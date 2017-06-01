@@ -3,7 +3,7 @@
 // Código original disponibilizado por Prof. Moacir Ponti
 Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
 	Subgraph *protos = NULL;
-	int i, j, k, n;
+	int i, j, n;
     *nprotos = 0;
 
     //Conta quantos prototipos existem
@@ -13,7 +13,7 @@ Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
 	if((*nprotos) > sgTrain->nnodes*rate)
 		(*nprotos) = sgTrain->nnodes*rate;
 
-	fprintf(stdout, "%d/%d", (*nprotos), sgTrain->nnodes);
+	fprintf(stdout, " %d/%d", (*nprotos), sgTrain->nnodes);
 
     protos = CreateSubgraph((*nprotos));// cria uma subgraph
     protos->nlabels = sgTrain->nlabels;// copia o numero de rotulos
@@ -23,22 +23,21 @@ Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
     for (i = 0; i < (*nprotos); i++)// aloca a quantidade de atributos
         protos->node[i].feat = AllocFloatArray(sgTrain->nfeats);
    
-	k = 0;
 	for(i = 0; i < (*nprotos); i++) {
         j = sgTrain->ordered_list_of_nodes[i];
+
+		CopySNode(&(protos->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
         
-        for (n = 0; n < sgTrain->nfeats; n++)
-            protos->node[k].feat[n] = sgTrain->node[j].feat[n];
+        // for (n = 0; n < sgTrain->nfeats; n++)
+        //     protos->node[i].feat[n] = sgTrain->node[j].feat[n];
         
-        // copia o rotulo e rotulo verdadeiro(supervisionado)
-        protos->node[k].label = sgTrain->node[j].label;
-        protos->node[k].truelabel = sgTrain->node[j].truelabel;
-        // copia a posicao
-        protos->node[k].position = sgTrain->node[j].position;
+        // // copia o rotulo e rotulo verdadeiro(supervisionado)
+        // protos->node[i].label = sgTrain->node[j].label;
+        // protos->node[i].truelabel = sgTrain->node[j].truelabel;
+        // // copia a posicao
+        // protos->node[i].position = sgTrain->node[j].position;
 
         protos->ordered_list_of_nodes[i] = i;
-
-        k++;
     }
 
     return protos;
