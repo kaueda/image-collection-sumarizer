@@ -4,24 +4,13 @@
 #define FALSE 0
 #define TRUE !(FALSE)
 
-typedef struct {
-	float pathval;
-	int id;
-} sortsg;
-
-int compare(const void *a, const void *b) {
-	sortsg *x = (sortsg*) a;
-	sortsg *y = (sortsg*) b;
-	return (x->pathval > y->pathval);
-}
-
 void getLabels(Subgraph *data, int *labels, int *centroids, int k) {
 	int i, j, minid;
 	float weight, minw;
 
 	for(i = 0; i < data->nnodes; i++) {
 		minid = -1;
-		minw = INT_MAX;
+		minw = FLT_MAX;
 
 		for(j = 0; j < k; j++) {
 			// Get weight 
@@ -113,7 +102,6 @@ void cpyarr(int *a, int *b, int n) {
 // Código original disponibilizado por Prof. Moacir Ponti
 Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 	Subgraph *sgkmeans = NULL;
-	sortsg *ordered_index = NULL;
 	int *centroids, *oldCentroids, *labels;
 	int i, j, n, iters = 0;
 
@@ -121,20 +109,16 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 	oldCentroids = AllocIntArray(k);
 	labels = AllocIntArray(sgTrain->nnodes);
 
-	ordered_index = (sortsg*) calloc(k, sizeof(sortsg));
-    if(ordered_index == NULL)
-        Error(MSG1, "Allocation of memory for struct");
-
 	sgkmeans = CreateSubgraph(k);
+	sgkmeans->nnodes = k;
+	sgkmeans->nfeats = sgTrain->nfeats;// copia o numero dos atributos
 	for (i = 0; i < k; i++)// aloca a quantidade de atributos
         sgkmeans->node[i].feat = AllocFloatArray(sgTrain->nfeats);
 	
 	// initialize centroids as k-first nodes with smallest pathval
-	for(i = 0; i < k; i++) centroids[i] = sgTrain->ordered_list_of_nodes[i];
+	for(i = 0; i < k; i++) centroids[i] = rand()%sgTrain->nnodes;
 
-	fprintf(stdout, " %d", k);
-
-	fprintf(stdout, "\n", k);
+	fprintf(stdout, " %d", k); fflush(stdout);
 	while(!shouldStop(oldCentroids, centroids, k, iters)){
 		cpyarr(oldCentroids, centroids, k);
 		iters++;
@@ -144,28 +128,17 @@ Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 
 		// For each cluster calculate new centroids 
 		getCentroids(sgTrain, labels, centroids, k);
-		fprintf(stdout, "%d   ", iters); fflush(stdout);
 	}
 
 	// Set centroids as new subgraph
 	for(i = 0; i < k; i++) {
         j = centroids[i];
-
 		CopySNode(&(sgkmeans->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
-
-		ordered_index[i].id = i;
-		ordered_index[i].pathval = sgTrain->node[j].pathval;
     }
-	
-	// sort and set the ordered list of nodes
-	qsort(ordered_index, k, sizeof(sortsg), compare);
-	for(i = 0; i < k; i++)
-		sgkmeans->ordered_list_of_nodes[i] = ordered_index[i].id;
 
 	free(labels);
 	free(centroids);
 	free(oldCentroids);
-	free(ordered_index);
 
     return sgkmeans;
 }
@@ -209,9 +182,10 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "\nGetting K-Mean Nodes ..."); fflush(stdout);
 	sprintf(fileName, "%s.nprotos", argv[1]);
 	f = fopen(fileName, "r");
-	fscanf(f, "%d\n", &k);
+	i = fscanf(f, "%d\n", &k);
 	fclose(f);
 	Subgraph *gKMeans = opf_OPFTrainKMeans(gTrain, k);
+	opf_OPFTraining(gKMeans);
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);

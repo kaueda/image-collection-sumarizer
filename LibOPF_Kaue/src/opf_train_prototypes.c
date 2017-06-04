@@ -25,19 +25,7 @@ Subgraph* opf_OPFTrainPrototypes(Subgraph *sgTrain, int *nprotos, float rate) {
    
 	for(i = 0; i < (*nprotos); i++) {
         j = sgTrain->ordered_list_of_nodes[i];
-
 		CopySNode(&(protos->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
-        
-        // for (n = 0; n < sgTrain->nfeats; n++)
-        //     protos->node[i].feat[n] = sgTrain->node[j].feat[n];
-        
-        // // copia o rotulo e rotulo verdadeiro(supervisionado)
-        // protos->node[i].label = sgTrain->node[j].label;
-        // protos->node[i].truelabel = sgTrain->node[j].truelabel;
-        // // copia a posicao
-        // protos->node[i].position = sgTrain->node[j].position;
-
-        protos->ordered_list_of_nodes[i] = i;
     }
 
     return protos;
@@ -83,6 +71,7 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "\nGetting Prototypes ..."); fflush(stdout);
 	nprotos = 0;
 	Subgraph *gPrototypes = opf_OPFTrainPrototypes(gTrain, &nprotos, atof(argv[2]));
+	opf_OPFTraining(gPrototypes);
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);

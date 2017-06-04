@@ -1,16 +1,5 @@
 #include "OPF.h"
 
-typedef struct {
-	float pathval;
-	int id;
-} sortsg;
-
-int compare(const void *a, const void *b) {
-	sortsg *x = (sortsg*) a;
-	sortsg *y = (sortsg*) b;
-	return (x->pathval > y->pathval);
-}
-
 int* shuffle(int n) {
 	int *array = NULL;
 	int i, randi, aux;
@@ -33,7 +22,6 @@ int* shuffle(int n) {
 Subgraph* opf_OPFTrainRandom(Subgraph *sgTrain, int nrand) {
 	Subgraph *sgrand = NULL;
 	int *randseq = NULL;
-	sortsg ordered_index[nrand];
     int i, j, n;
 
     sgrand = CreateSubgraph(nrand);// cria uma subgraph
@@ -50,26 +38,8 @@ Subgraph* opf_OPFTrainRandom(Subgraph *sgTrain, int nrand) {
 	fprintf(stdout, " %d", nrand);
 	for (i = 0; i < nrand; i++) {
 		j = randseq[i];
-
 		CopySNode(&(sgrand->node[i]), &(sgTrain->node[j]), sgTrain->nfeats);
-
-		// for (n = 0; n < sgTrain->nfeats; n++)
-        //     sgrand->node[i].feat[n] = sgTrain->node[j].feat[n];
-
-		// // copia o rotulo e rotulo verdadeiro(supervisionado)
-		// sgrand->node[i].label = sgTrain->node[j].label;
-		// sgrand->node[i].truelabel = sgTrain->node[j].truelabel;
-		// // copia a posicao
-		// sgrand->node[i].position = sgTrain->node[j].position;
-		
-		ordered_index[i].id = i;
-		ordered_index[i].pathval = sgTrain->node[j].pathval;
 	}
-
-	// sort and set the ordered list of nodes
-	qsort(ordered_index, nrand, sizeof(sortsg), compare);
-	for (i = 0; i < nrand; i++)
-		sgrand->ordered_list_of_nodes[i] = ordered_index[i].id;
 
 	free(randseq);
 
@@ -115,9 +85,10 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "\nGetting N-Random Nodes ..."); fflush(stdout);
 	sprintf(fileName, "%s.nprotos", argv[1]);
 	f = fopen(fileName, "r");
-	fscanf(f, "%d\n", &nrand);
+	i = fscanf(f, "%d\n", &nrand);
 	fclose(f);
 	Subgraph *gRandom = opf_OPFTrainRandom(gTrain, nrand);
+	opf_OPFTraining(gRandom);
 	fprintf(stdout, " OK"); fflush(stdout);
 
 	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);

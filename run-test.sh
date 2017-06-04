@@ -2,7 +2,7 @@
 
 base=$1
 rate=$2
-# rm *.dat.* classifier.opf
+rm *.dat.* classifier.opf
 
 training=.5
 testing=$(bc -l <<< "1 - $training")
@@ -13,8 +13,17 @@ printf "########\n"
 printf "Your base is $base; train = 0$training; test = 0$testing; rate = $rate\n"
 
 if [ $3 -eq 1 ]; then
-    for i in `seq 1 10`; do
+    echo "opf" >> testing.dat.acc
+    echo "protos+" >> testing.dat.acc
+    echo "protos" >> testing.dat.acc
+    echo "rand" >> testing.dat.acc
+    echo "kmeans" >> testing.dat.acc
+
+    for i in `seq 1 5`; do
         ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
+
+        echo "--------------------------------------------------------------------------------"
+        echo "---------" >> testing.dat.acc
             
         # Test opf model
         ./LibOPF_Kaue/bin/opf_train training.dat
@@ -40,9 +49,6 @@ if [ $3 -eq 1 ]; then
         ./LibOPF_Kaue/bin/opf_train_kmeans training.dat
         ./LibOPF_Kaue/bin/opf_classify testing.dat
         ./LibOPF_Kaue/bin/opf_accuracy testing.dat
-
-        echo "--------------------------------------------------------------------------------"
-        echo "---------" >> testing.dat.acc
     done
     mv testing.dat.acc $base.acc
 
