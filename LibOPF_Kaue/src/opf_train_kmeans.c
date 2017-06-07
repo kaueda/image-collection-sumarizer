@@ -8,6 +8,10 @@ void getLabels(Subgraph *data, int *labels, int *centroids, int k) {
 	int i, j, minid;
 	float weight, minw;
 
+	// fprintf(stdout, "\nenter labels\n"); fflush(stdout);
+	fprintf(stdout, "\nnnodes %d\n", data->nnodes); fflush(stdout);
+	fprintf(stdout, "     k %d\n", k); fflush(stdout);
+
 	for(i = 0; i < data->nnodes; i++) {
 		minid = -1;
 		minw = FLT_MAX;
@@ -26,13 +30,17 @@ void getLabels(Subgraph *data, int *labels, int *centroids, int k) {
 		// Set the label of node[i] as centroid index
 		labels[i] = minid;
 	}
+
+	// fprintf(stdout, "leave labels\n"); fflush(stdout);
 }
 
-int* getCentroids(Subgraph *data, int *labels, int *centroids, int k) {
+void getCentroids(Subgraph *data, int *labels, int *centroids, int k) {
 	int i, j, f, minid;
 	float weight, minw;
 	SNode *mean;
 	int *count;
+
+	// fprintf(stdout, "\nenter centroids\n"); fflush(stdout);
 
 	// Initialize means verctor for each centroid
 	count = AllocIntArray(k);
@@ -80,6 +88,8 @@ int* getCentroids(Subgraph *data, int *labels, int *centroids, int k) {
 	free(count);
 	for(i = 0; i < k; i++) free(mean[i].feat);
 	free(mean);
+
+	// fprintf(stdout, "leave centroids\n"); fflush(stdout);
 }
 
 int shouldStop(int *old, int *cur, int k, int iters) {
@@ -103,7 +113,7 @@ void cpyarr(int *a, int *b, int n) {
 Subgraph* opf_OPFTrainKMeans(Subgraph *sgTrain, int k) {
 	Subgraph *sgkmeans = NULL;
 	int *centroids, *oldCentroids, *labels;
-	int i, j, n, iters = 0;
+	int i, j, iters = 0;
 
 	centroids = AllocIntArray(k);
 	oldCentroids = AllocIntArray(k);
@@ -159,7 +169,7 @@ int main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	int n, i, j, k, debug = 1;
+	int n, i, k, debug = 1;
 	char fileName[256];
 	FILE *f = NULL;
 	timer tic, toc;

@@ -19,7 +19,7 @@ if [ $3 -eq 1 ]; then
     echo "rand" >> testing.dat.acc
     echo "kmeans" >> testing.dat.acc
 
-    for i in `seq 1 5`; do
+    for i in `seq 1 10`; do
         ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
 
         echo "--------------------------------------------------------------------------------"
@@ -56,14 +56,29 @@ elif [ $3 -eq 2 ]; then
     ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1
             
     # Test opf model
-    ./LibOPF_Kaue/bin/opf_train training.dat
-    ./LibOPF_Kaue/bin/opf_classify testing.dat
-    ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+        ./LibOPF_Kaue/bin/opf_train training.dat
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
 
-    # Test protos model
-    ./LibOPF_Kaue/bin/opf_train_prototypes training.dat $rate
-    ./LibOPF_Kaue/bin/opf_classify testing.dat
-    ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+        # Test prototypes plus model
+        ./LibOPF_Kaue/bin/opf_train_prototypesplus training.dat $rate
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+        # Test protos model
+        ./LibOPF_Kaue/bin/opf_train_prototypes training.dat $rate
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+        # Test rand model
+        ./LibOPF_Kaue/bin/opf_train_random training.dat
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
+
+        # Test kmeans model
+        ./LibOPF_Kaue/bin/opf_train_kmeans training.dat
+        ./LibOPF_Kaue/bin/opf_classify testing.dat
+        ./LibOPF_Kaue/bin/opf_accuracy testing.dat
 
 elif [ $3 -eq 3 ]; then
     ./LibOPF_Kaue/bin/opf_split ./LibOPF_Kaue/bases/$base $training 0 $testing 1

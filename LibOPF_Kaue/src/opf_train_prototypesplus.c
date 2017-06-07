@@ -13,12 +13,12 @@ Subgraph* opf_OPFTrainPrototypesPlus(Subgraph *sgTrain, int *nprotos, float rate
     if((*nprotos) > sgTrain->nnodes*rate)
 		(*nprotos) = sgTrain->nnodes*rate;
 
+	fprintf(stdout, " %d/%d", (*nprotos)*2, sgTrain->nnodes); fflush(stdout);
+
     if((*nprotos) >= sgTrain->nnodes/2) {
         (*nprotos) = sgTrain->nnodes;
         return sgTrain;
     }
-
-	fprintf(stdout, " %d/%d", (*nprotos)*2, sgTrain->nnodes);
 
     protos = CreateSubgraph((*nprotos)*2);// cria uma subgraph
     protos->nlabels = sgTrain->nlabels;// copia o numero de rotulos
@@ -115,8 +115,9 @@ int main(int argc, char **argv) {
 	}
 
 	fprintf(stdout, "\nDeallocating memory ..."); fflush(stdout);
+	if(gPrototypes != gTrain)
+		DestroySubgraph(&gPrototypes);
 	DestroySubgraph(&gTrain);
-	DestroySubgraph(&gPrototypes);
 	if(opf_PrecomputedDistance){
 		for (i = 0; i < n; i++)
 			free(opf_DistanceValue[i]);
